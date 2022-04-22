@@ -1,16 +1,16 @@
 import json
 import logging
 from flask import Flask, request, make_response, jsonify
-from flask_mysqldb import MySQL
 import MySQLdb
+import sshtunnel 
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
 
 # MySQL configurations
-username = 'heartbeat'
-passwd = 'YOURPASSWORD'
-hostname = 'DATABASEHOSTNAME'
+username = 'USERNAME'
+passwd = 'PASSWORD'
+hostname = 'HOSTNAME'
 db_name = "DBNAME"
 
 @app.route("/")
@@ -21,15 +21,15 @@ def index():
 @app.route("/products",methods=['GET'])
 def display_data():
     app.logger.info("Some One request Product data")
-    conn = MySQLdb.connect(host=hostname, user=username, passwd=passwd, db=db_name)
+    conn = MySQLdb.connect(user=username, passwd=passwd,host=hostname, port=3306, db=db_name)
     cursor = conn.cursor()
     cursor.execute('''SELECT * FROM product''')
     data = cursor.fetchall()
+    # data = str(data)
     cursor.close()
 
     products = []
     quantities = []
-
     for row in data:
         products.append(row[0])
         quantities.append(row[1])
@@ -52,7 +52,7 @@ def insert_data():
     product = request.args.get("product")
     quantity = request.args.get("quantity")
 
-    conn = MySQLdb.connect(host=hostname, user=username, passwd=passwd, db=db_name)
+    conn = MySQLdb.connect(user=username, passwd=passwd,host=hostname, port=3306, db=db_name)
     cursor = conn.cursor()
     query = '''INSERT INTO product VALUES ('{}',{});'''.format(product,int(quantity))
     cursor.execute(query)
@@ -65,7 +65,7 @@ def insert_data():
     }
 
     return jsonify(jsonbody)
-##http://localhost/insert?product=<product_name>&quantity=<qty>
+##http://127.0.0.1:5000/insert?product=<product_name>&quantity=<qty>
 
 if __name__ == '__main__':
     app.run(debug=True)
